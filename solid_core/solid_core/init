@@ -1,0 +1,27 @@
+#!/bin/sh
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs none /dev
+/sbin/mdev -s
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+chmod 666 /dev/ptmx
+echo 1 > /proc/sys/kernel/kptr_restrict
+echo 1 > /proc/sys/kernel/dmesg_restrict
+ifconfig lo 127.0.0.1
+route add -net 127.0.0.0 netmask 255.255.255.0 lo
+#route add default gw 10.0.2.2 
+#insmod /csaw.ko
+echo "flag{p4nda_sample_flag}" >> /flag
+chmod 400 /flag
+insmod /simp1e.ko
+chmod 777 /proc/simp1e
+
+
+setsid /bin/cttyhack setuidgid 1000 /bin/sh
+echo 'sh end!\n'
+poweroff -d 1800000 -f &
+umount /proc
+umount /sys
+
+poweroff -d 0  -f
