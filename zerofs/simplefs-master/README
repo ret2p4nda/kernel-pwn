@@ -1,0 +1,173 @@
+A simple filesystem to understand things.
+
+This is a Work In Progress. Do not use this yet.
+
+If you are planning to learn filesystems, start from the scratch. You can look from the first commit in this repository and move the way up.
+
+The source files are licensed under Creative Commons Zero License.
+More information at:	http://creativecommons.org/publicdomain/zero/1.0/
+Full license text at:	http://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+simplefs 1.0 Architecture + Notes
+---------------------------------
+
+Block Zero = Super block
+Block One = Inode store
+Block Two = Occupied by the initial file that is created as part of the mkfs.
+
+Only a limited number of filesystem objects are supported.
+Files and Directories can be created. Support for .create and .mkdir is implemented. Nested directories can be created.
+A file cannot grow beyond one block. ENOSPC will be returned as an error on attempting to do.
+Directories store the children inode number and name in their data blocks.
+Read support is implemented.
+Basic write support is implemented. Writes may not succeed if done in an offset. Works when you overwrite the entire block.
+Locks are not well thought-out. The current locking scheme works but needs more analysis + code reviews.
+Memory leaks may (will ?) exist.
+
+
+Credits
+--------
+The initial source code is written by psankar and patches are contributed by other github members. azat being the first contributor.
+
+An O_LARGETHANKS to the guidance of VijaiBabu M and Santosh Venugopal. Their excellent talks on filesystems motivated me to implement a file system from the scratch. Without their inspirational speeches, I would not have focussed on filesystems.
+
+A big thanks should go to the kernelnewbies mailing list for helping me with clarifying the nitty-gritties of the linux kernel, especially people like Mulyadi Santosa, Valdis Kletnieks, Manish Katiyar, Rajat Sharma etc.
+
+Special thanks to Ankit Jain who provides interesting conversations to help my intellectual curiosities.
+
+
+Patch Submission
+-----------------
+Please send a merge request only if you are ready to publish your changes in the same creative commons zero license.
+
+We would like to keep the filesystem simple and minimal so that it can be used as a good teaching material.
+
+We are not planning to use this filesystem in a production machine. So some design choices are driven by learning/teaching simplicity over performance/scalability. This is intentional. So do not try to fix those things :)
+
+TODO
+-----
+- After the 1.0 release, start with support for extents, which on completion will be 2.0
+- After the 2.0 release, start with journalling support, which on completion will be 3.0
+
+
+To compile:
+------------
+install linux kernel sources and run make from the checkedout directory.
+
+
+To test:
+---------
+And here is the build environment for simplefs: https://github.com/azat/simplefs-bld
+
+psankar@linux-9dni:~/src/simplefs> make
+
+psankar@linux-9dni:~/src/simplefs> dd bs=4096 count=100 if=/dev/zero of=image
+100+0 records in
+100+0 records out
+409600 bytes (410 kB) copied, 0.00106827 s, 383 MB/s
+psankar@linux-9dni:~/src/simplefs> ./mkfs-simplefs image
+Super block written succesfully
+root directory inode written succesfully
+welcomefile inode written succesfully
+inode store padding bytes (after the two inodes) written sucessfully
+root directory datablocks (name+inode_no pair for welcomefile) written succesfully
+padding after the rootdirectory children written succesfully
+welcomefilebody has been written succesfully
+
+psankar@linux-9dni:~/src/simplefs>
+
+Now as root:
+linux-9dni:/home/psankar/src/simplefs # insmod simplefs.ko ; mount -o loop -t simplefs image /home/psankar/src/simplefs/mount/ ; dmesg
+[41932.281196] Sucessfully registered simplefs
+[41932.284811] The magic number obtained in disk is: [268640275]
+[41932.284813] simplefs filesystem of version [1] formatted with a block size of [4096] detected in the device.
+[41932.284823] simplefs is succesfully mounted on [/dev/loop16]
+linux-9dni:/home/psankar/src/simplefs # cd mount/
+linux-9dni:/home/psankar/src/simplefs/mount # ls
+vanakkam
+linux-9dni:/home/psankar/src/simplefs/mount # cat vanakkam
+Love is God. God is Love. Anbe Murugan.
+linux-9dni:/home/psankar/src/simplefs/mount # cp vanakkam hello
+linux-9dni:/home/psankar/src/simplefs/mount # cat hello
+Love is God. God is Love. Anbe Murugan.
+linux-9dni:/home/psankar/src/simplefs/mount # echo "Hello World" > hello
+linux-9dni:/home/psankar/src/simplefs/mount # cat hello
+Hello World
+linux-9dni:/home/psankar/src/simplefs/mount # mkdir dir1
+linux-9dni:/home/psankar/src/simplefs/mount # cd dir1
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # cp ../hello .
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # cat hello
+Hello World
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # echo "First level directory" > hello
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # cat hello
+First level directory
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # mkdir dir2
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # cd dir2
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # touch hello
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # cat hello
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # echo "Second level directory" > hello
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # cat hello
+Second level directory
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # ...
+linux-9dni:/home/psankar/src/simplefs/mount # ..
+linux-9dni:/home/psankar/src/simplefs # umount mount ; rmmod simplefs.ko ;
+linux-9dni:/home/psankar/src/simplefs # insmod simplefs.ko ; mount -o loop -t simplefs image /home/psankar/src/simplefs/mount/
+linux-9dni:/home/psankar/src/simplefs # cd mount
+linux-9dni:/home/psankar/src/simplefs/mount # ls -lR
+.:
+total 0
+drwxr-xr-x 1 root root 0 Aug  5 22:43 dir1
+---------- 1 root root 0 Aug  5 22:43 hello
+---------- 1 root root 0 Aug  5 22:43 vanakkam
+
+./dir1:
+total 0
+drwxr-xr-x 1 root root 0 Aug  5 22:43 dir2
+---------- 1 root root 0 Aug  5 22:43 hello
+
+./dir1/dir2:
+total 0
+-rw-r--r-- 1 root root 0 Aug  5 22:43 hello
+linux-9dni:/home/psankar/src/simplefs/mount # cat hello
+Hello World
+linux-9dni:/home/psankar/src/simplefs/mount # cd dir1
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # cat hello
+First level directory
+linux-9dni:/home/psankar/src/simplefs/mount/dir1 # cd dir2/
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # cat hello
+Second level directory
+linux-9dni:/home/psankar/src/simplefs/mount/dir1/dir2 # ...
+linux-9dni:/home/psankar/src/simplefs/mount # ..
+linux-9dni:/home/psankar/src/simplefs # umount mount ; rmmod simplefs.ko ;
+linux-9dni:/home/psankar/src/simplefs # dmesg
+[41932.281196] Sucessfully registered simplefs
+[41932.284811] The magic number obtained in disk is: [268640275]
+[41932.284813] simplefs filesystem of version [1] formatted with a block size of [4096] detected in the device.
+[41932.284823] simplefs is succesfully mounted on [/dev/loop16]
+[41951.102689] No inode found for the filename [hello]
+[41951.102706] No inode found for the filename [hello]
+[41951.102724] No inode found for the filename [hello]
+[41951.102731] New file creation request
+[41951.102986] The new filesize that is written is: [41] and len was: [41]
+[41961.195423] The new filesize that is written is: [12] and len was: [12]
+[41968.055946] No inode found for the filename [dir1]
+[41968.055959] New directory creation request
+[41980.265026] No inode found for the filename [hello]
+[41980.265073] No inode found for the filename [hello]
+[41980.265082] New file creation request
+[41980.265168] The new filesize that is written is: [12] and len was: [12]
+[41991.857978] The new filesize that is written is: [22] and len was: [22]
+[41999.993579] No inode found for the filename [dir2]
+[41999.993592] New directory creation request
+[42005.461745] No inode found for the filename [hello]
+[42005.461756] New file creation request
+[42016.694882] The new filesize that is written is: [23] and len was: [23]
+[42024.480843] simplefs superblock is destroyed. Unmount succesful.
+[42024.485339] Sucessfully unregistered simplefs
+[42031.157983] Sucessfully registered simplefs
+[42031.162331] The magic number obtained in disk is: [268640275]
+[42031.162334] simplefs filesystem of version [1] formatted with a block size of [4096] detected in the device.
+[42031.162360] simplefs is succesfully mounted on [/dev/loop17]
+[42104.389807] simplefs superblock is destroyed. Unmount succesful.
+[42104.395575] Sucessfully unregistered simplefs
+linux-9dni:/home/psankar/src/simplefs #

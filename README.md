@@ -4,3 +4,4 @@ some kernel PWN challenge I finished.
 ## [0ctf 2018 final baby](http://p4nda.top/2018/07/20/0ctf-baby/)
 ## [QWB 2018 CTF solid_core](http://leanote.com/blog/post/5ab78270ab64413755000dcf)
 ## [CSAW-2015-CTF stringipc](http://p4nda.top/2018/11/07/stringipc/)
+## [0CTF 2018 zer0fs](/home/p4nda/Desktop/pwn/zerofs)
