@@ -7,7 +7,7 @@ some kernel PWN challenge I finished.
 ## [0CTF 2018 zer0fs](http://blog.eadom.net/writeups/0ctf-2018-zerofs-writeup/)
 about VFS in linux, Something new for me.
 Vulnerability is simple , bounds memory read and write.
-don't want to write writeup , caz bad mood....
+don't want to write writeup , cuz bad mood....
 
 Reference : 
 http://blog.eadom.net/writeups/0ctf-2018-zerofs-writeup/
