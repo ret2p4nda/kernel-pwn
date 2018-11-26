@@ -1,0 +1,37 @@
+#!/bin/sh
+
+mount -nvt tmpfs none /dev
+mknod -m 622 /dev/console c 5 1
+mknod -m 666 /dev/null c 1 3
+mknod -m 666 /dev/zero c 1 5
+mknod -m 666 /dev/ptmx c 5 2
+mknod -m 666 /dev/tty c 5 0
+mknod -m 0660 /dev/ttyS0 c 4 64
+mknod -m 444 /dev/random c 1 8
+mknod -m 444 /dev/urandom c 1 9
+chown root:tty /dev/console
+chown root:tty /dev/ptmx
+chown root:tty /dev/tty
+mkdir -p /dev/pts
+mount -vt devpts -o gid=4,mode=620 none /dev/pts
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+cat /root/signature
+
+echo 0 > /proc/sys/kernel/kptr_restrict
+echo 0 > /proc/sys/kernel/dmesg_restrict
+
+insmod /list.ko
+mknod /dev/klist c 137 1
+chmod a+rw /dev/klist
+cat /proc/kallsyms |grep commit_cred
+lsmod
+#cat /sys/module/list/sections/.text 
+setsid cttyhack setuidgid 1000 sh
+
+umount /proc
+umount /sys
+
+halt -d 1 -n -f
