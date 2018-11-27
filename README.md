@@ -4,6 +4,7 @@ some kernel PWN challenge I finished.
 ## [0CTF 2018 final baby](http://p4nda.top/2018/07/20/0ctf-baby/)
 ## [QWB 2018 CTF solid_core](http://leanote.com/blog/post/5ab78270ab64413755000dcf)
 ## [CSAW-2015-CTF stringipc](http://p4nda.top/2018/11/07/stringipc/)
+## [WCTF 2018 klist](http://p4nda.top/2018/11/27/wctf-2018-klist/)
 ## [0CTF 2018 zer0fs](http://blog.eadom.net/writeups/0ctf-2018-zerofs-writeup/)
 about VFS in linux, Something new for me.
 Vulnerability is simple , bounds memory read and write.
@@ -21,4 +22,4 @@ https://blog.csdn.net/a954423389/article/details/6870967
 https://github.com/psankar/simplefs
 
 https://blog.csdn.net/qq_29343201/article/details/79793528
-## [WCTF 2018 klist](to be continue)
+
