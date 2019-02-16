@@ -5,5 +5,4 @@ qemu-system-x86_64 \
 -append "root=/dev/ram rw console=ttyS0 oops=panic panic=1 quiet" \
 -cpu qemu64 \
 -netdev user,id=t0, -device e1000,netdev=t0,id=nic0 \
--gdb tcp::1234 -S \
 -nographic  -enable-kvm  \
