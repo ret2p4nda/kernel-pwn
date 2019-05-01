@@ -1,0 +1,9 @@
+~/gdb-8.2/bin/gdb \
+    -ex "add-auto-load-safe-path $(pwd)" \
+    -ex "file vmlinux" \
+    -ex 'set arch i386:x86-64:intel' \
+    -ex 'target remote localhost:4869' \
+    -ex 'continue' \
+    -ex 'disconnect' \
+    -ex 'set arch i386:x86-64' \
+    -ex 'target remote localhost:4869'
